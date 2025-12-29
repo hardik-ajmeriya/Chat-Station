@@ -7,7 +7,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "npm ci --prefix backend && npm ci --prefix frontend && node -v && npx --prefix frontend vite --version && npm run build --prefix frontend",
+    "build": "npm install --prefix backend && npm install --prefix frontend && node -v && npx --prefix frontend vite --version && npm run build --prefix frontend",
     "start": "npm run start --prefix backend"
   },
   "repository": {
