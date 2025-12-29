@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "engines": {
-    "node": ">=22.0.0"
+    "node": "22.12.0"
   },
   "scripts": {
     "build": "npm ci --prefix backend && npm ci --prefix frontend && node -v && npx --prefix frontend vite --version && npm run build --prefix frontend",
