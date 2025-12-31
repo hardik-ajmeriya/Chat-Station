@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 import { ENV } from "../lib/env.js";
 
+// User Signup Controller
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
 
@@ -52,9 +53,13 @@ export const signup = async (req, res) => {
 
       // todo: send a welcome email to user
       try {
-        await sendWelcomeEmail(savedUser.email, savedUser.fullName, ENV.CLIENT_URL);
+        await sendWelcomeEmail(
+          savedUser.email,
+          savedUser.fullName,
+          ENV.CLIENT_URL
+        );
       } catch (error) {
-        console.log("Failed to send welcome email",error)
+        console.log("Failed to send welcome email", error);
       }
     } else {
       res.status(400).json({ message: "Internal User Data" });
@@ -63,4 +68,38 @@ export const signup = async (req, res) => {
     console.error("Signup error:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
+};
+
+// User Login Controller
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid Credentials" });
+      // never tell the client which one is incorrect: email or passwor
+    }
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (!isPasswordCorrect) {
+      return res.status(400).json({ message: "Invalid Credentials" });
+    }
+
+    generateToken(user._id, res);
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      profilePic: user.profilePic,
+    });
+  } catch (error) {
+    console.error("Error in Log Controller: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// User Logout Controller
+export const logout = (_, res) => {
+  res.cookie("jwt", "", { maxAge: 0 });
+  res.status(200).json({ message: "Logged out successfully" });
 };
