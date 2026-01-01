@@ -3,12 +3,13 @@ import { generateToken } from "../lib/utils.js";
 import bcrypt from "bcryptjs";
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 import { ENV } from "../lib/env.js";
+import cloudinary from "../lib/cloudinary.js";
 
 // User Signup Controller
 export const signup = async (req, res) => {
   const { fullName, email, password } = req.body;
 
-  if(!email || !password){
+  if (!email || !password) {
     return res.status(400).json({ message: "Email and Password are required" });
   }
 
@@ -106,4 +107,27 @@ export const login = async (req, res) => {
 export const logout = (_, res) => {
   res.cookie("jwt", "", { maxAge: 0 });
   res.status(200).json({ message: "Logged out successfully" });
+};
+
+// Update User Profile Controller
+export const updateProfile = async (req, res) => {
+  try {
+    const { profilePic } = req.body;
+    if (!profilePic) {
+      res.status(400).json({ message: "Profile Image is Required" });
+    }
+    const userId = req.user._id;
+    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { profilePic: uploadResponse.secure_url },
+      { new: true }
+    );
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Error in Log Controller: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };
