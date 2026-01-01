@@ -10,6 +10,7 @@ const app = express();
 const PORT = ENV.PORT || 3000;
 
 // middlewares
+app.set("trust proxy", true);
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(cookieParser());
