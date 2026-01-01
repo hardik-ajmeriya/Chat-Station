@@ -17,7 +17,7 @@ app.use(cookieParser());
 
 // routes
 app.use("/api/auth", authRoutes);
-app.use("/api/message", messageRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Do not serve frontend; backend is API-only for separate deployment
 
