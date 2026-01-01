@@ -4,7 +4,7 @@ import messageRoutes from "./routes/message.route.js";
 import cors from "cors";
 import { connectDB } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
-
+import cookieParser from "cookie-parser";
 
 const app = express();
 const PORT = ENV.PORT || 3000;
@@ -12,6 +12,7 @@ const PORT = ENV.PORT || 3000;
 // middlewares
 app.use(cors({ origin: "*" }));
 app.use(express.json());
+app.use(cookieParser());
 
 // routes
 app.use("/api/auth", authRoutes);
