@@ -11,8 +11,17 @@ const PORT = ENV.PORT || 3000;
 
 // middlewares
 app.set("trust proxy", true);
-app.use(cors({ origin: "*" }));
 app.use(express.json());
+// Allow specific origins with credentials; avoid wildcard with credentials
+const allowedOrigins = [ENV.CLIENT_URL, "http://localhost:5173"].filter(Boolean);
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
+// Handle preflight for all routes
+app.options("*", cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser());
 
 // routes
