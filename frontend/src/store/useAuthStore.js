@@ -10,8 +10,10 @@ export const useAuthStore = create((set) => ({
   // 🔹 Check current user (on app load)
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get("/auth/check");
-      set({ authUser: res.data || null });
+      const res = await axiosInstance.get("/auth/check", { validateStatus: () => true });
+      const isJson = typeof res.data === "object" && res.headers?.["content-type"]?.includes("application/json");
+      const validUser = isJson && res.status === 200 && res.data && (res.data._id || res.data.email);
+      set({ authUser: validUser ? res.data : null });
     } catch {
       set({ authUser: null });
     } finally {
