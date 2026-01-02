@@ -13,15 +13,24 @@ const PORT = ENV.PORT || 3000;
 app.set("trust proxy", true);
 app.use(express.json());
 // Allow specific origins with credentials; avoid wildcard with credentials
-const allowedOrigins = [ENV.CLIENT_URL, "http://localhost:5173"].filter(Boolean);
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  })
-);
+const allowedOrigins = [
+  ENV.CLIENT_URL,
+  "http://localhost:5173",
+  "https://chat-station-beige.vercel.app",
+].filter(Boolean);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow curl/mobile
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 // Handle preflight for all routes
-app.options("*", cors({ origin: allowedOrigins, credentials: true }));
+app.options("*", cors(corsOptions));
 app.use(cookieParser());
 
 // routes
