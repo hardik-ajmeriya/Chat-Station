@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const baseURL =
+const API_URL =
   import.meta.env.MODE === "development"
     ? "http://localhost:3000/api"
-    : import.meta.env.VITE_API_URL || "/api";
+    : "https://chat-station.onrender.com/api"; // 👈 Render backend URL
 
 export const axiosInstance = axios.create({
-  baseURL: baseURL,
+  baseURL: API_URL,
   withCredentials: true,
 });
