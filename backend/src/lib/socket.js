@@ -9,11 +9,31 @@ import user from "../models/User.js";
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = [ENV.CLIENT_URL, "http://localhost:5173"].filter(Boolean);
+const allowedOrigins = [
+  ENV.CLIENT_URL,
+  "http://localhost:5173",
+  "https://chat-station-beige.vercel.app",
+].filter(Boolean);
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      try {
+        // Allow same-origin or server-side connections (no origin)
+        if (!origin) return callback(null, true);
+
+        // Strict allowlist check
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+
+        // Optionally allow any Vercel preview domain
+        const isVercel = origin.endsWith(".vercel.app") && origin.startsWith("https://");
+        if (isVercel) return callback(null, true);
+
+        return callback(new Error("Not allowed by Socket.IO CORS"));
+      } catch {
+        return callback(new Error("Socket.IO CORS evaluation failed"));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
