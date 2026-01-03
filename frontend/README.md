@@ -14,20 +14,24 @@ No `.env` is required for local dev. The base API URL is selected by mode in [sr
 - development → http://localhost:3000/api
 - production → https://chat-station.onrender.com/api
 
+Socket.IO connects to the backend origin selected by `BASE_URL` inside the auth store. Ensure backend `.env` contains `CLIENT_URL=http://localhost:5173` and the socket server allows it.
+
 ## Features
 - Auth: login, signup, logout, check session
 - Profile: update profile image via backend
 - Chats: list chat partners and contacts, select conversation
 - Messages: load conversation messages, send text or image
-- UI: tab switcher, sound toggle, presence indicator (placeholder)
+- Presence: live online users via Socket.IO (with cookie-auth handshake)
+- UI: tab switcher, sound toggle
 
 ## State Stores
 - Auth store: [src/store/useAuthStore.js](src/store/useAuthStore.js)
 	- Methods: `checkAuth()`, `signup(data)`, `login(data)`, `logout()`, `updateProfile({ profilePic })`
 	- `updateProfile` calls `PUT /auth/update-profile` and updates `authUser`
+	- Socket: `connectSocket()` connects after auth using `withCredentials: true`; `disconnectSocket()` clears listeners and instance
 - Chat store: [src/store/useChatStore.js](src/store/useChatStore.js)
 	- Methods: `getAllContacts()`, `getMyChatPartners()`, `setActiveTab(tab)`, `setSelectedUser(user)`, `getMessagesByUserId(userId)`, `sendMessage({ text, image })`
-	- Subscriptions: `subscribeToMessages()` and `unsubscribeFromMessages()` are safe no-ops (enable sockets later)
+	- Subscriptions: `subscribeToMessages()` and `unsubscribeFromMessages()` are placeholders until realtime messaging is enabled
 
 ## Notable Components
 - Page: [src/pages/ChatPage.jsx](src/pages/ChatPage.jsx)
@@ -39,6 +43,7 @@ No `.env` is required for local dev. The base API URL is selected by mode in [sr
 - Prevent crashes on tab switch by defaulting arrays (`onlineUsers`, `chats`, `allContacts`) in components
 - Restored `getMessagesByUserId` and `sendMessage` in chat store
 - Implemented `updateProfile` in auth store for profile image updates
+- Socket connection hardened to avoid duplicates; added connect error logging
 
 ## Build
 ```bash
@@ -46,3 +51,7 @@ npm run build
 npm run preview
 ```
 Serves the built app locally.
+
+## Tips
+- If you see CORS errors for Socket.IO, confirm backend `CLIENT_URL` and the socket server allowlist include `http://localhost:5173`.
+- For emails in development, Resend only sends to the `EMAIL_FROM` address. Verify a domain to send to any recipient in production.

@@ -5,8 +5,8 @@ import cors from "cors";
 import { connectDB } from "./lib/db.js";
 import { ENV } from "./lib/env.js";
 import cookieParser from "cookie-parser";
+import { app, server } from "./lib/socket.js";
 
-const app = express();
 const PORT = ENV.PORT || 3000;
 
 // middlewares
@@ -39,7 +39,7 @@ app.use("/api/messages", messageRoutes);
 
 // Do not serve frontend; backend is API-only for separate deployment
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log("Server is running on port: " + PORT);
   connectDB();
 });

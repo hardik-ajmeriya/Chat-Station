@@ -52,13 +52,16 @@ export const signup = async (req, res) => {
         profilePic: newUser.profilePic,
       });
 
-      // todo: send a welcome email to user
+      // send a welcome email to user (non-blocking and tolerant of dev limits)
       try {
-        await sendWelcomeEmail(
+        const result = await sendWelcomeEmail(
           savedUser.email,
           savedUser.fullName,
           ENV.CLIENT_URL
         );
+        if (result?.error) {
+          console.log("Failed to send welcome email", result.error);
+        }
       } catch (error) {
         console.log("Failed to send welcome email", error);
       }

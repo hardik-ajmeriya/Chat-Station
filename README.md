@@ -19,7 +19,7 @@ Chat Station provides a clean, modern UI and a secure backend. The frontend (Vit
 
 ## Architecture
 - Frontend (SPA): React 19, Vite 7, TailwindCSS, DaisyUI, Zustand for state, React Router, Axios for HTTP.
-- Backend (API): Express 4, Mongoose 8, JWT auth with cookies, Resend for emails, Cloudinary for media, Arcjet for rate‑limiting/abuse protection.
+- Backend (API): Express 4, Mongoose 8, JWT auth with cookies, Socket.IO for presence, Resend for emails, Cloudinary for media, Arcjet for rate‑limiting/abuse protection.
 - Database: MongoDB.
 - Hosting (example): Frontend on Vercel, Backend on Render (see frontend/src/lib/axios.jsx).
 
@@ -84,6 +84,7 @@ Key files:
 - Env loader: backend/src/lib/env.js
 - JWT cookie settings: backend/src/lib/utils.js
 - CORS allowlist: backend/src/server.js
+- Socket.IO server + CORS: backend/src/lib/socket.js (allows CLIENT_URL and localhost:5173 with credentials)
 
 ### Frontend config
 No frontend .env is required for local dev. The base API URL is selected by mode in frontend/src/lib/axios.jsx:
@@ -133,10 +134,16 @@ Base URL: http://localhost:3000/api
 - Axios instance (with `withCredentials: true`) is defined in frontend/src/lib/axios.jsx.
 - Chat page composes lists and container: see frontend/src/pages/ChatPage.jsx.
 
+### Socket.IO Presence
+- Client connects after successful auth via `connectSocket()` in the auth store. It uses `withCredentials: true` so the `jwt` cookie authenticates the handshake.
+- Server authenticates sockets in backend middleware, logs the authenticated user, and broadcasts `getOnlineUsers` with a list of user IDs.
+- The auth store listens for `getOnlineUsers` and updates `onlineUsers` used by the UI.
+
 ### Recent Frontend Fixes
 - Stabilized tab switching between Chats and Contacts by defaulting arrays (`onlineUsers`, `chats`, `allContacts`) to prevent `.includes`/`.map` on `undefined`.
 - Restored chat functionality: `getMessagesByUserId` and `sendMessage` implemented in the chat store; message list loads on user selection.
 - Added profile update flow: `updateProfile` in auth store uploads a base64 image to Cloudinary via the backend and updates `authUser`.
+- Hardened socket connection: `connectSocket()` guards against duplicate instances; `disconnectSocket()` clears listeners/state.
 
 ## Deployment
 - Frontend: Build with npm run build in frontend/ and deploy dist/ to your static host (e.g., Vercel). Tailwind/DaisyUI are already configured.
@@ -149,6 +156,8 @@ Base URL: http://localhost:3000/api
 - Logout does not redirect: The frontend sets authUser = null on logout. The / route then navigates to /login. If this does not happen, confirm the store is imported from frontend/src/store/useAuthStore.js and that your component calls logout().
 - MongoDB connection: Check MONGO_URI and server logs from backend/src/lib/db.js.
 - Rate limiting: Arcjet middleware runs before auth (backend/src/middleware/arcjet.middleware.js); misconfiguration can reject requests.
+- Socket.IO CORS: Socket server restricts origins; confirm backend/src/lib/socket.js contains your CLIENT_URL and localhost:5173 when developing.
+- Resend emails in dev: Without a verified domain, Resend only sends to the `EMAIL_FROM` address. In development we skip sending to other recipients and log a warning; verify a domain for production delivery.
 
 ---
 
