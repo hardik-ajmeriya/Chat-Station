@@ -126,10 +126,17 @@ Base URL: http://localhost:3000/api
 | POST | /messages/send/:id | Protected | Send a message to a user |
 
 ## Frontend Notes
-- Protected routing is handled in frontend/src/App.jsx: the / route renders the chat page when authUser exists, otherwise it redirects to /login.
-- Auth state and API calls live in frontend/src/store/useAuthStore.js. The store exposes checkAuth(), signup(), login(), and logout().
-- Axios instance (with withCredentials: true) is defined in frontend/src/lib/axios.jsx.
-- Example chat page uses logout() directly: see frontend/src/pages/ChatPage.jsx.
+- Protected routing is handled in frontend/src/App.jsx: the / route renders the chat page when `authUser` exists, otherwise it redirects to /login.
+- Auth store: see frontend/src/store/useAuthStore.js. Exposes `checkAuth()`, `signup()`, `login()`, `logout()`, and `updateProfile({ profilePic })` which `PUT`s to `/auth/update-profile` and updates `authUser`.
+- Chat store: see frontend/src/store/useChatStore.js. Exposes `getAllContacts()`, `getMyChatPartners()`, `setActiveTab()`, `setSelectedUser()`, `getMessagesByUserId(userId)`, `sendMessage(data)`, and placeholder `subscribeToMessages()` / `unsubscribeFromMessages()` (safe no-ops until sockets are added). UI sound toggle uses `isSoundEnabled` + `toggleSound()`.
+- Presence indicator: components safely default `onlineUsers` to `[]` in `useAuthStore()` consumers; real presence can be wired later via sockets.
+- Axios instance (with `withCredentials: true`) is defined in frontend/src/lib/axios.jsx.
+- Chat page composes lists and container: see frontend/src/pages/ChatPage.jsx.
+
+### Recent Frontend Fixes
+- Stabilized tab switching between Chats and Contacts by defaulting arrays (`onlineUsers`, `chats`, `allContacts`) to prevent `.includes`/`.map` on `undefined`.
+- Restored chat functionality: `getMessagesByUserId` and `sendMessage` implemented in the chat store; message list loads on user selection.
+- Added profile update flow: `updateProfile` in auth store uploads a base64 image to Cloudinary via the backend and updates `authUser`.
 
 ## Deployment
 - Frontend: Build with npm run build in frontend/ and deploy dist/ to your static host (e.g., Vercel). Tailwind/DaisyUI are already configured.

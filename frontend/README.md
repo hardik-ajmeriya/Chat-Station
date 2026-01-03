@@ -1,16 +1,48 @@
-# React + Vite
+# Chat Station Frontend (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern React SPA for Chat Station using Vite, TailwindCSS, DaisyUI, Zustand, and Axios. This app consumes the backend API for auth and messaging.
 
-Currently, two official plugins are available:
+## Quick Start
+```bash
+npm install
+npm run dev
+```
+Open http://localhost:5173.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Configuration
+No `.env` is required for local dev. The base API URL is selected by mode in [src/lib/axios.jsx](src/lib/axios.jsx):
+- development → http://localhost:3000/api
+- production → https://chat-station.onrender.com/api
 
-## React Compiler
+## Features
+- Auth: login, signup, logout, check session
+- Profile: update profile image via backend
+- Chats: list chat partners and contacts, select conversation
+- Messages: load conversation messages, send text or image
+- UI: tab switcher, sound toggle, presence indicator (placeholder)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## State Stores
+- Auth store: [src/store/useAuthStore.js](src/store/useAuthStore.js)
+	- Methods: `checkAuth()`, `signup(data)`, `login(data)`, `logout()`, `updateProfile({ profilePic })`
+	- `updateProfile` calls `PUT /auth/update-profile` and updates `authUser`
+- Chat store: [src/store/useChatStore.js](src/store/useChatStore.js)
+	- Methods: `getAllContacts()`, `getMyChatPartners()`, `setActiveTab(tab)`, `setSelectedUser(user)`, `getMessagesByUserId(userId)`, `sendMessage({ text, image })`
+	- Subscriptions: `subscribeToMessages()` and `unsubscribeFromMessages()` are safe no-ops (enable sockets later)
 
-## Expanding the ESLint configuration
+## Notable Components
+- Page: [src/pages/ChatPage.jsx](src/pages/ChatPage.jsx)
+- Lists: [src/components/ChatsList.jsx](src/components/ChatsList.jsx), [src/components/ContactList.jsx](src/components/ContactList.jsx)
+- Chat: [src/components/ChatContainer.jsx](src/components/ChatContainer.jsx), [src/components/MessageInput.jsx](src/components/MessageInput.jsx), [src/components/ChatHeader.jsx](src/components/ChatHeader.jsx)
+- Profile: [src/components/ProfileHeader.jsx](src/components/ProfileHeader.jsx)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Recent Fixes
+- Prevent crashes on tab switch by defaulting arrays (`onlineUsers`, `chats`, `allContacts`) in components
+- Restored `getMessagesByUserId` and `sendMessage` in chat store
+- Implemented `updateProfile` in auth store for profile image updates
+
+## Build
+```bash
+npm run build
+npm run preview
+```
+Serves the built app locally.
