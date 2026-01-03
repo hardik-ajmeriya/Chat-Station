@@ -130,7 +130,8 @@ Base URL: http://localhost:3000/api
 - Protected routing is handled in frontend/src/App.jsx: the / route renders the chat page when `authUser` exists, otherwise it redirects to /login.
 - Auth store: see frontend/src/store/useAuthStore.js. Exposes `checkAuth()`, `signup()`, `login()`, `logout()`, and `updateProfile({ profilePic })` which `PUT`s to `/auth/update-profile` and updates `authUser`.
 - Chat store: see frontend/src/store/useChatStore.js. Exposes `getAllContacts()`, `getMyChatPartners()`, `setActiveTab()`, `setSelectedUser()`, `getMessagesByUserId(userId)`, `sendMessage(data)`, and placeholder `subscribeToMessages()` / `unsubscribeFromMessages()` (safe no-ops until sockets are added). UI sound toggle uses `isSoundEnabled` + `toggleSound()`.
-- Presence indicator: components safely default `onlineUsers` to `[]` in `useAuthStore()` consumers; real presence can be wired later via sockets.
+- Realtime: `subscribeToMessages()` / `unsubscribeFromMessages()` listen to the `newMessage` Socket.IO event and append messages for the currently selected user. UI sound toggle uses `isSoundEnabled` + `toggleSound()`.
+- Presence indicator: components safely default `onlineUsers` to `[]` and it is populated via Socket.IO `getOnlineUsers` broadcast.
 - Axios instance (with `withCredentials: true`) is defined in frontend/src/lib/axios.jsx.
 - Chat page composes lists and container: see frontend/src/pages/ChatPage.jsx.
 
@@ -138,6 +139,10 @@ Base URL: http://localhost:3000/api
 - Client connects after successful auth via `connectSocket()` in the auth store. It uses `withCredentials: true` so the `jwt` cookie authenticates the handshake.
 - Server authenticates sockets in backend middleware, logs the authenticated user, and broadcasts `getOnlineUsers` with a list of user IDs.
 - The auth store listens for `getOnlineUsers` and updates `onlineUsers` used by the UI.
+
+### Realtime Messaging
+- API saves messages via `POST /messages/send/:id`. After saving, the server emits `newMessage` to the receiver's socket (if online).
+- The chat store listens for `newMessage` and, when the message is from the currently selected user, appends it to the conversation and optionally plays a notification sound.
 
 ### Recent Frontend Fixes
 - Stabilized tab switching between Chats and Contacts by defaulting arrays (`onlineUsers`, `chats`, `allContacts`) to prevent `.includes`/`.map` on `undefined`.
@@ -158,6 +163,7 @@ Base URL: http://localhost:3000/api
 - Rate limiting: Arcjet middleware runs before auth (backend/src/middleware/arcjet.middleware.js); misconfiguration can reject requests.
 - Socket.IO CORS: Socket server restricts origins; confirm backend/src/lib/socket.js contains your CLIENT_URL and localhost:5173 when developing.
 - Resend emails in dev: Without a verified domain, Resend only sends to the `EMAIL_FROM` address. In development we skip sending to other recipients and log a warning; verify a domain for production delivery.
+- 500 on send message: Ensure backend controller imports `{ io, getReceiverSocketId }` from `backend/src/lib/socket.js` and emits with `io.to(<socketId>).emit("newMessage", message)`.
 
 ---
 

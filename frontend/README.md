@@ -22,6 +22,7 @@ Socket.IO connects to the backend origin selected by `BASE_URL` inside the auth 
 - Chats: list chat partners and contacts, select conversation
 - Messages: load conversation messages, send text or image
 - Presence: live online users via Socket.IO (with cookie-auth handshake)
+- Realtime: receive `newMessage` events and append to the open conversation
 - UI: tab switcher, sound toggle
 
 ## State Stores
@@ -31,7 +32,7 @@ Socket.IO connects to the backend origin selected by `BASE_URL` inside the auth 
 	- Socket: `connectSocket()` connects after auth using `withCredentials: true`; `disconnectSocket()` clears listeners and instance
 - Chat store: [src/store/useChatStore.js](src/store/useChatStore.js)
 	- Methods: `getAllContacts()`, `getMyChatPartners()`, `setActiveTab(tab)`, `setSelectedUser(user)`, `getMessagesByUserId(userId)`, `sendMessage({ text, image })`
-	- Subscriptions: `subscribeToMessages()` and `unsubscribeFromMessages()` are placeholders until realtime messaging is enabled
+	- Subscriptions: `subscribeToMessages()`/`unsubscribeFromMessages()` manage the Socket.IO `newMessage` listener and append messages for the selected user
 
 ## Notable Components
 - Page: [src/pages/ChatPage.jsx](src/pages/ChatPage.jsx)
@@ -44,6 +45,7 @@ Socket.IO connects to the backend origin selected by `BASE_URL` inside the auth 
 - Restored `getMessagesByUserId` and `sendMessage` in chat store
 - Implemented `updateProfile` in auth store for profile image updates
 - Socket connection hardened to avoid duplicates; added connect error logging
+ - Wired realtime `newMessage` subscription in chat store
 
 ## Build
 ```bash
@@ -55,3 +57,4 @@ Serves the built app locally.
 ## Tips
 - If you see CORS errors for Socket.IO, confirm backend `CLIENT_URL` and the socket server allowlist include `http://localhost:5173`.
 - For emails in development, Resend only sends to the `EMAIL_FROM` address. Verify a domain to send to any recipient in production.
+ - If sending a message returns 500, ensure the backend emits with `io.to(<receiverSocketId>).emit("newMessage", message)` and that the controller imports `io` from the socket module.

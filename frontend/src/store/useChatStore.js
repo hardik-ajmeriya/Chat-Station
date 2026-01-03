@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
-//import { useAuthStore } from "./useAuthStore";
+import { useAuthStore } from "./useAuthStore";
 
 export const useChatStore = create((set, get) => ({
   allContacts: [],
@@ -59,7 +59,10 @@ export const useChatStore = create((set, get) => ({
     const { selectedUser, messages } = get();
     if (!selectedUser) return;
     try {
-      const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
+      const res = await axiosInstance.post(
+        `/messages/send/${selectedUser._id}`,
+        messageData
+      );
       set({ messages: [...messages, res.data] });
     } catch (error) {
       toast.error(error?.response?.data?.message || "Something went wrong");
@@ -67,9 +70,32 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    // No-op placeholder; real-time updates are not enabled
+    const { selectedUser, isSoundEnabled } = get();
+    if (!selectedUser) return;
+
+    const socket = useAuthStore.getState().socket;
+
+    socket.on("newMessage", (newMessage) => {
+      const isMessageSentFromSelectedUser =
+        newMessage.senderId === selectedUser._id;
+      if (!isMessageSentFromSelectedUser) return;
+
+      const currentMessages = get().messages;
+      set({ messages: [...currentMessages, newMessage] });
+
+      if (isSoundEnabled) {
+        const notificationSound = new Audio("/sounds/notification.mp3");
+
+        notificationSound.currentTime = 0; // reset to start
+        notificationSound
+          .play()
+          .catch((e) => console.log("Audio play failed:", e));
+      }
+    });
   },
+
   unsubscribeFromMessages: () => {
-    // No-op placeholder; real-time updates are not enabled
+    const socket = useAuthStore.getState().socket;
+    socket.off("newMessage");
   },
 }));
