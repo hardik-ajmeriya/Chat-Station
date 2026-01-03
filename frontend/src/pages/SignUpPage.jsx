@@ -98,12 +98,6 @@ function SignUpPage() {
 
             {/* FORM ILLUSTRATION - RIGHT SIDE */}
             <div className="hidden md:w-1/2 md:flex items-center justify-center p-6 bg-gradient-to-bl from-slate-800/20 to-transparent relative">
-              {/* Top-centered welcome label */}
-              <div className="absolute inset-x-0 top-6 flex items-center justify-center pointer-events-none">
-                <span className="px-5 py-2 rounded-2xl border border-slate-700/40 bg-slate-900/50 backdrop-blur-sm shadow-lg text-2xl md:text-3xl font-bold tracking-wide text-cyan-400/95">
-                  Welcome, Chat Station
-                </span>
-              </div>
               <div>
                 <img
                   src="/signup.png"

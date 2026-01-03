@@ -13,6 +13,9 @@ export default {
           to: { "--border-angle": "360deg" },
         },
       },
+      fontFamily: {
+        display: ["Sora", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", "sans-serif"],
+      },
     },
   },
   plugins: [daisyui],

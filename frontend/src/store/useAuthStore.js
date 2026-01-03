@@ -6,13 +6,22 @@ export const useAuthStore = create((set) => ({
   authUser: null,
   isCheckingAuth: true,
   isSigningUp: false,
+  isLoggingIn: false,
 
   // 🔹 Check current user (on app load)
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get("/auth/check", { validateStatus: () => true });
-      const isJson = typeof res.data === "object" && res.headers?.["content-type"]?.includes("application/json");
-      const validUser = isJson && res.status === 200 && res.data && (res.data._id || res.data.email);
+      const res = await axiosInstance.get("/auth/check", {
+        validateStatus: () => true,
+      });
+      const isJson =
+        typeof res.data === "object" &&
+        res.headers?.["content-type"]?.includes("application/json");
+      const validUser =
+        isJson &&
+        res.status === 200 &&
+        res.data &&
+        (res.data._id || res.data.email);
       set({ authUser: validUser ? res.data : null });
     } catch {
       set({ authUser: null });
@@ -41,6 +50,7 @@ export const useAuthStore = create((set) => ({
 
   // 🔹 Login
   login: async (data) => {
+    set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/auth/login", data);
       set({ authUser: res.data });
@@ -51,6 +61,8 @@ export const useAuthStore = create((set) => ({
         error?.message ||
         "Invalid credentials";
       toast.error(message);
+    } finally {
+      set({ isLoggingIn: false });
     }
   },
 
@@ -60,8 +72,9 @@ export const useAuthStore = create((set) => ({
       await axiosInstance.post("/auth/logout");
       set({ authUser: null });
       toast.success("Logged out");
-    } catch {
+    } catch (error) {
       toast.error("Logout failed");
+      console.log("Logout Error:",error); 
     }
   },
 }));
